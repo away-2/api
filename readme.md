@@ -41,7 +41,7 @@ app.listen(3000, () => {
 
 1. 自动重启服务
    安装 nodemon 工具
-   `npm i nodemon`
+   `npm i nodemon -D`
    编写`package.json`脚本
 
 ```
@@ -190,4 +190,63 @@ class UserController {
 }
 
 module.exports = new UserController()
+```
+
+# 六、解析body
+1. 安装koa-body
+```npm i koa-body```
+
+2. 注册中间件
+ - 改写`app/index.js'
+```
+const Koa = require('koa')
+const { koaBody } = require('koa-body')
+
+const userRouter = require('../router/user.route')
+
+const app = new Koa()
+
+app.use(koaBody())
+app.use(userRouter.routes())
+
+module.exports = app
+```
+
+3. 解析请求数据
+- 改写`controller/user.controller.js`
+```
+const { createUser } = require('../service/user.service')
+class UserController {
+    // 用户注册
+    async register(ctx, next) {
+        // 1. 获取数据
+        // console.log(ctx.request.body);
+        const { user_name, password } = ctx.request.body
+        // 2. 操作数据库
+        const res = await createUser(user_name, password)
+        console.log(res);
+        // 3. 返回结果
+        ctx.body = ctx.request.body
+    }
+    // 用户登录
+    async login(ctx, next) {
+        ctx.body = 'login success'
+    }
+}
+
+module.exports = new UserController()
+```
+
+4. 拆分service层
+- service层主要是做数据库处理
+- 创建`src/service/user.service.js`
+```
+class UserService {
+    async createUser(user_name, password) {
+        // todo: 写入数据库
+        return '写入数据库cg'
+    }
+}
+
+module.exports = new UserService()
 ```
